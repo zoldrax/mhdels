@@ -17,7 +17,7 @@ def comparefromstart(a, b):
     for x, y in zip(a.upper(), b.upper()):
         if x != y: break
         i += 1
-    return (i)
+    return i
 
 
 parser = argparse.ArgumentParser()
@@ -31,7 +31,6 @@ ref = pysam.FastaFile(args.reference)
 vcf_in = pysam.VariantFile(args.input)
 vcf_in.header.info.add('MHD_SEQ', '.', 'String', 'Microhomology sequence')
 vcf_in.header.info.add('MHD_ENTLEN', 'A', 'Float', 'Entropy multiplyed by the length of microhomology sequence')
-print(list(vcf_in.header.info))
 vcf_out = pysam.VariantFile(args.output, 'w', header=vcf_in.header)
 for record in vcf_in:
     start = record.stop
@@ -41,11 +40,8 @@ for record in vcf_in:
     postfix = ref.fetch(reference=record.contig, start=start, end=stop)
     deletion = record.ref[len(record.alts[0]):]
     equal = comparefromstart(deletion, postfix)
-    if (equal > 2):
-        print(deletion)
-        print(postfix)
+    if equal > 2:
         equalstr = deletion[:equal]
-        print(equal * entropy(equalstr), equalstr)
         record.info['MHD_SEQ'] = equalstr
         record.info['MHD_ENTLEN'] = equal * entropy(equalstr)
     vcf_out.write(record)
